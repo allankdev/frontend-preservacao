@@ -11,8 +11,30 @@ import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
 import { Skeleton } from "@/components/ui/skeleton"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
-import { FileText, Search, Plus, MoreVertical, FileEdit, Trash2, Share2, FileArchive, Filter } from "lucide-react"
+import {
+  FileText,
+  Search,
+  Plus,
+  MoreVertical,
+  FileEdit,
+  Trash2,
+  Share2,
+  FileArchive,
+  Filter,
+  Copy,
+  Check,
+} from "lucide-react"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { useRouter } from "next/navigation"
 
 interface Document {
   id: string
@@ -30,11 +52,19 @@ const statusColors = {
 }
 
 export default function DashboardPage() {
+  const router = useRouter()
   const [documents, setDocuments] = useState<Document[]>([])
   const [filteredDocs, setFilteredDocs] = useState<Document[]>([])
   const [loading, setLoading] = useState(true)
   const [searchQuery, setSearchQuery] = useState("")
   const [statusFilter, setStatusFilter] = useState<string>("todos")
+
+  // Dialog states
+  const [shareDialogOpen, setShareDialogOpen] = useState(false)
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
+  const [selectedDoc, setSelectedDoc] = useState<Document | null>(null)
+  const [copied, setCopied] = useState(false)
+  const [deleting, setDeleting] = useState(false)
 
   useEffect(() => {
     const fetchDocs = async () => {
@@ -79,6 +109,48 @@ export default function DashboardPage() {
     } catch (e) {
       return dateString
     }
+  }
+
+  // Handle share action
+  const handleShare = (doc: Document) => {
+    setSelectedDoc(doc)
+    setShareDialogOpen(true)
+  }
+
+  // Handle edit action
+  const handleEdit = (docId: string) => {
+    router.push(`/document/${docId}`)
+  }
+
+  // Handle delete action
+  const handleDeleteClick = (doc: Document) => {
+    setSelectedDoc(doc)
+    setDeleteDialogOpen(true)
+  }
+
+  const handleDeleteConfirm = async () => {
+    if (!selectedDoc) return
+
+    setDeleting(true)
+    try {
+      await api.delete(`/documents/${selectedDoc.id}`)
+      // Remove the document from the list
+      setDocuments(documents.filter((doc) => doc.id !== selectedDoc.id))
+      window.alert("Documento excluído com sucesso!")
+    } catch (err) {
+      console.error("Erro ao excluir documento", err)
+      window.alert("Erro ao excluir documento. Tente novamente.")
+    } finally {
+      setDeleting(false)
+      setDeleteDialogOpen(false)
+    }
+  }
+
+  // Copy to clipboard function
+  const copyToClipboard = (text: string) => {
+    navigator.clipboard.writeText(text)
+    setCopied(true)
+    setTimeout(() => setCopied(false), 2000)
   }
 
   return (
@@ -189,13 +261,16 @@ export default function DashboardPage() {
                     </Button>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="end">
-                    <DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => handleEdit(doc.id)}>
                       <FileEdit className="mr-2 h-4 w-4" /> Editar
                     </DropdownMenuItem>
-                    <DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => handleShare(doc)}>
                       <Share2 className="mr-2 h-4 w-4" /> Compartilhar
                     </DropdownMenuItem>
-                    <DropdownMenuItem className="text-destructive focus:text-destructive">
+                    <DropdownMenuItem
+                      className="text-destructive focus:text-destructive"
+                      onClick={() => handleDeleteClick(doc)}
+                    >
                       <Trash2 className="mr-2 h-4 w-4" /> Excluir
                     </DropdownMenuItem>
                   </DropdownMenuContent>
@@ -204,6 +279,132 @@ export default function DashboardPage() {
             </Card>
           ))}
         </div>
+      )}
+
+      {/* Share Dialog */}
+      {selectedDoc && (
+        <Dialog open={shareDialogOpen} onOpenChange={setShareDialogOpen}>
+          <DialogContent className="sm:max-w-md">
+            <DialogHeader>
+              <DialogTitle>Compartilhar documento</DialogTitle>
+              <DialogDescription>Compartilhe este documento com outras pessoas</DialogDescription>
+            </DialogHeader>
+
+            <Tabs defaultValue="link" className="w-full">
+              <TabsList className="grid w-full grid-cols-2">
+                <TabsTrigger value="link">Link</TabsTrigger>
+                <TabsTrigger value="social">Redes Sociais</TabsTrigger>
+              </TabsList>
+
+              <TabsContent value="link" className="mt-4">
+                <div className="flex items-center space-x-2">
+                  <div className="grid flex-1 gap-2">
+                    <Input value={`${window.location.origin}/document/${selectedDoc.id}`} readOnly className="w-full" />
+                  </div>
+                  <Button
+                    type="button"
+                    size="sm"
+                    className="px-3"
+                    onClick={() => copyToClipboard(`${window.location.origin}/document/${selectedDoc.id}`)}
+                  >
+                    {copied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
+                    <span className="sr-only">Copiar</span>
+                  </Button>
+                </div>
+              </TabsContent>
+
+              <TabsContent value="social" className="mt-4">
+                <div className="flex flex-col space-y-4">
+                  <p className="text-sm text-muted-foreground">
+                    Compartilhe diretamente nas redes sociais ou aplicativos de mensagem
+                  </p>
+                  <div className="flex flex-wrap gap-2">
+                    <Button
+                      variant="outline"
+                      className="flex-1"
+                      onClick={() =>
+                        window.open(
+                          `https://api.whatsapp.com/send?text=${encodeURIComponent(`${selectedDoc.name}: ${window.location.origin}/document/${selectedDoc.id}`)}`,
+                          "_blank",
+                        )
+                      }
+                    >
+                      WhatsApp
+                    </Button>
+                    <Button
+                      variant="outline"
+                      className="flex-1"
+                      onClick={() =>
+                        window.open(
+                          `https://telegram.me/share/url?url=${encodeURIComponent(`${window.location.origin}/document/${selectedDoc.id}`)}&text=${encodeURIComponent(selectedDoc.name)}`,
+                          "_blank",
+                        )
+                      }
+                    >
+                      Telegram
+                    </Button>
+                    <Button
+                      variant="outline"
+                      className="flex-1"
+                      onClick={() =>
+                        window.open(
+                          `mailto:?subject=${encodeURIComponent(selectedDoc.name)}&body=${encodeURIComponent(`Confira este documento: ${window.location.origin}/document/${selectedDoc.id}`)}`,
+                          "_blank",
+                        )
+                      }
+                    >
+                      Email
+                    </Button>
+                  </div>
+                </div>
+              </TabsContent>
+            </Tabs>
+
+            <DialogFooter className="sm:justify-between">
+              <div className="text-sm text-muted-foreground">Link válido enquanto o documento existir</div>
+              {navigator.share && (
+                <Button
+                  type="button"
+                  variant="secondary"
+                  onClick={() => {
+                    navigator
+                      .share({
+                        title: selectedDoc.name,
+                        text: "Confira este documento preservado!",
+                        url: `${window.location.origin}/document/${selectedDoc.id}`,
+                      })
+                      .catch((err) => console.error("Erro ao compartilhar:", err))
+                  }}
+                >
+                  <Share2 className="mr-2 h-4 w-4" />
+                  Compartilhar
+                </Button>
+              )}
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+      )}
+
+      {/* Delete Confirmation Dialog */}
+      {selectedDoc && (
+        <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Excluir documento</DialogTitle>
+              <DialogDescription>
+                Tem certeza que deseja excluir o documento "{selectedDoc.name}"? Esta ação não pode ser desfeita.
+              </DialogDescription>
+            </DialogHeader>
+            <DialogFooter className="gap-2 sm:gap-0">
+              <Button variant="outline" onClick={() => setDeleteDialogOpen(false)}>
+                Cancelar
+              </Button>
+              <Button variant="destructive" onClick={handleDeleteConfirm} disabled={deleting}>
+                {deleting ? "Excluindo..." : "Excluir permanentemente"}
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
       )}
     </div>
   )

@@ -8,7 +8,6 @@ import api from "@/lib/api"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { Skeleton } from "@/components/ui/skeleton"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import {
   Dialog,
@@ -30,7 +29,10 @@ import {
   CheckCircle,
   Clock,
   ExternalLink,
+  Copy,
+  Check,
 } from "lucide-react"
+import { Input } from "@/components/ui/input"
 import Link from "next/link"
 
 interface Document {
@@ -72,8 +74,10 @@ export default function DocumentDetailPage() {
   const [doc, setDoc] = useState<Document | null>(null)
   const [loading, setLoading] = useState(true)
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
+  const [shareDialogOpen, setShareDialogOpen] = useState(false)
   const [deleting, setDeleting] = useState(false)
   const [pdfUrl, setPdfUrl] = useState<string | null>(null)
+  const [copied, setCopied] = useState(false)
 
   const fetchDoc = async () => {
     try {
@@ -141,15 +145,22 @@ export default function DocumentDetailPage() {
     URL.revokeObjectURL(url)
   }
 
+  // Copy to clipboard function
+  const copyToClipboard = (text: string) => {
+    navigator.clipboard.writeText(text)
+    setCopied(true)
+    setTimeout(() => setCopied(false), 2000)
+  }
+
   if (loading) return <div className="max-w-4xl mx-auto p-6">Carregando...</div>
   if (!doc || !pdfUrl) return null
 
   const statusInfo = getStatusInfo(doc.status)
   const StatusIcon = statusInfo.icon
+  const shareUrl = `${window.location.origin}/document/${documentId}`
 
   return (
-   
-   <div className="max-w-4xl mx-auto p-6 space-y-6">
+    <div className="max-w-4xl mx-auto p-6 space-y-6">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div className="flex items-center gap-2">
           <Button variant="ghost" size="icon" asChild className="h-9 w-9">
@@ -170,9 +181,107 @@ export default function DocumentDetailPage() {
         </div>
 
         <div className="flex gap-2 w-full sm:w-auto">
-          <Button variant="outline" size="sm" className="flex-1 sm:flex-none">
-            <Share2 className="mr-2 h-4 w-4" /> Compartilhar
-          </Button>
+          <Dialog open={shareDialogOpen} onOpenChange={setShareDialogOpen}>
+            <DialogTrigger asChild>
+              <Button variant="outline" size="sm" className="flex-1 sm:flex-none">
+                <Share2 className="mr-2 h-4 w-4" /> Compartilhar
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="sm:max-w-md">
+              <DialogHeader>
+                <DialogTitle>Compartilhar documento</DialogTitle>
+                <DialogDescription>Compartilhe este documento com outras pessoas</DialogDescription>
+              </DialogHeader>
+
+              <Tabs defaultValue="link" className="w-full">
+                <TabsList className="grid w-full grid-cols-2">
+                  <TabsTrigger value="link">Link</TabsTrigger>
+                  <TabsTrigger value="social">Redes Sociais</TabsTrigger>
+                </TabsList>
+
+                <TabsContent value="link" className="mt-4">
+                  <div className="flex items-center space-x-2">
+                    <div className="grid flex-1 gap-2">
+                      <Input value={shareUrl} readOnly className="w-full" />
+                    </div>
+                    <Button type="button" size="sm" className="px-3" onClick={() => copyToClipboard(shareUrl)}>
+                      {copied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
+                      <span className="sr-only">Copiar</span>
+                    </Button>
+                  </div>
+                </TabsContent>
+
+                <TabsContent value="social" className="mt-4">
+                  <div className="flex flex-col space-y-4">
+                    <p className="text-sm text-muted-foreground">
+                      Compartilhe diretamente nas redes sociais ou aplicativos de mensagem
+                    </p>
+                    <div className="flex flex-wrap gap-2">
+                      <Button
+                        variant="outline"
+                        className="flex-1"
+                        onClick={() =>
+                          window.open(
+                            `https://api.whatsapp.com/send?text=${encodeURIComponent(`${doc.name}: ${shareUrl}`)}`,
+                            "_blank",
+                          )
+                        }
+                      >
+                        WhatsApp
+                      </Button>
+                      <Button
+                        variant="outline"
+                        className="flex-1"
+                        onClick={() =>
+                          window.open(
+                            `https://telegram.me/share/url?url=${encodeURIComponent(shareUrl)}&text=${encodeURIComponent(doc.name)}`,
+                            "_blank",
+                          )
+                        }
+                      >
+                        Telegram
+                      </Button>
+                      <Button
+                        variant="outline"
+                        className="flex-1"
+                        onClick={() =>
+                          window.open(
+                            `mailto:?subject=${encodeURIComponent(doc.name)}&body=${encodeURIComponent(`Confira este documento: ${shareUrl}`)}`,
+                            "_blank",
+                          )
+                        }
+                      >
+                        Email
+                      </Button>
+                    </div>
+                  </div>
+                </TabsContent>
+              </Tabs>
+
+              <DialogFooter className="sm:justify-between">
+                <div className="text-sm text-muted-foreground">Link válido enquanto o documento existir</div>
+                {navigator.share && (
+                  <Button
+                    type="button"
+                    variant="secondary"
+                    onClick={() => {
+                      navigator
+                        .share({
+                          title: doc.name,
+                          text: "Confira este documento preservado!",
+                          url: shareUrl,
+                        })
+                        .catch((err) => console.error("Erro ao compartilhar:", err))
+                    }}
+                  >
+                    <Share2 className="mr-2 h-4 w-4" />
+                    Compartilhar
+                  </Button>
+                )}
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
+
           <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
             <DialogTrigger asChild>
               <Button variant="destructive" size="sm" className="flex-1 sm:flex-none">
