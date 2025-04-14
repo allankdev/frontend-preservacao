@@ -6,13 +6,13 @@ Este repositório contém o **frontend** da aplicação fullstack de preservaç�
 
 ## 🚀 Tecnologias Utilizadas
 
-| Camada     | Tecnologias                                                   |
-|------------|---------------------------------------------------------------|
-| Frontend   | [Next.js](https://nextjs.org/), App Router, React Hook Form   |
-| UI/UX      | TailwindCSS, [ShadCN UI](https://ui.shadcn.com/)              |
-| Estado     | Zustand (authStore opcional), useState/useEffect              |
-| Autenticação | Cookies HttpOnly + token JWT integrado com backend          |
-| Utilitários | Axios, date-fns, lucide-react, classnames                    |
+| Camada       | Tecnologias                                                   |
+|--------------|---------------------------------------------------------------|
+| Frontend     | [Next.js](https://nextjs.org/), App Router, React Hook Form   |
+| UI/UX        | TailwindCSS, [ShadCN UI](https://ui.shadcn.com/)              |
+| Estado       | Zustand (authStore opcional), useState/useEffect              |
+| Autenticação | Cookies HttpOnly + token JWT integrado com backend            |
+| Utilitários  | Axios, date-fns, lucide-react, classnames                     |
 
 ---
 
@@ -45,12 +45,15 @@ A API é consumida diretamente via Axios, configurado em `lib/api.ts`. O backend
 
 ```env
 NEXT_PUBLIC_API_URL=http://localhost:3000
-O frontend depende de um backend funcional para autenticação, upload e recuperação dos dados. Verifique que o backend esteja ativo antes de usar o frontend.
+```
 
-📦 Estrutura do Projeto
-bash
-Copiar
-Editar
+> O frontend depende de um backend funcional para autenticação, upload e recuperação dos dados. Verifique que o backend esteja ativo antes de usar o frontend.
+
+---
+
+## 📦 Estrutura do Projeto
+
+```
 /app
   ├── login/
   ├── register/
@@ -65,57 +68,77 @@ Editar
   ├── auth.ts          # Funções auxiliares de autenticação
 /hooks
   ├── useAuth.ts       # Hook para autenticação via cookie JWT
-🧪 Como rodar o frontend localmente
-1. Clone o repositório
-bash
-Copiar
-Editar
+```
+
+---
+
+## 🧪 Como rodar o frontend localmente
+
+### 1. Clone o repositório
+
+```bash
 git clone https://github.com/allankdev/frontend-preservacao.git
 cd frontend-preservacao
-2. Instale as dependências
-bash
-Copiar
-Editar
-npm install
-3. Configure as variáveis de ambiente
-Crie um .env.local:
+```
 
-env
-Copiar
-Editar
+### 2. Instale as dependências
+
+```bash
+npm install
+```
+
+### 3. Configure as variáveis de ambiente
+
+Crie um arquivo `.env.local`:
+
+```env
 NEXT_PUBLIC_API_URL=http://localhost:3000
+```
+
 Altere a URL se o backend estiver rodando em outra porta ou domínio.
 
-4. Inicie o servidor de desenvolvimento
-bash
-Copiar
-Editar
+### 4. Inicie o servidor de desenvolvimento
+
+```bash
 npm run dev
-O app estará disponível em: http://localhost:3001 ou conforme a porta usada
+```
 
-🔐 Login de Teste
-Registre-se via /register
+O app estará disponível em: [http://localhost:3001](http://localhost:3001) ou conforme a porta usada
 
-Faça login em /login
+---
 
-Após logar, você será redirecionado automaticamente para /dashboard
+## 🔐 Login de Teste
 
-O token JWT é salvo via cookie e lido automaticamente nas chamadas do frontend.
+1. Registre-se via `/register`
+2. Faça login em `/login`
+3. Após logar, você será redirecionado automaticamente para `/dashboard`
+4. O token JWT é salvo via cookie e lido automaticamente nas chamadas do frontend
 
-🧱 Observações
-❌ Sem uso de Docker: este projeto não utiliza containerização.
+---
 
-📂 Upload real de arquivos com preview em tempo real via iframe
+## 🧱 Observações
 
-🔁 Polling automático para checar a finalização do processo de preservação
+- ❌ Sem uso de Docker: este projeto não utiliza containerização
+- 📂 Upload real de arquivos com preview em tempo real via iframe
+- 🔁 Polling automático para checar a finalização do processo de preservação
 
-🧑‍💻 Autor
-Desenvolvido por Allan Kelven
+---
 
-📧 Email: allankelven.ak@gmail.com
-📅 Desafio técnico: Estagiário Fullstack – LedgerTec
-📆 Entrega final: 22 de abril de 2025
+## 👤 Autor
 
-🔗 GitHub Backend: github.com/allankdev/backend-preservacao
-🔗 GitHub Frontend: github.com/allankdev/frontend-preservacao
+**Desenvolvido por:** Allan Kelven  
+**Email:** [allankelven.ak@gmail.com](mailto:allankelven.ak@gmail.com)
 
+---
+
+## 📅 Desafio Técnico
+
+**Vaga:** Estagiário Fullstack – LedgerTec  
+**Entrega final:** 22 de abril de 2025
+
+---
+
+## 🔗 Repositórios
+
+- Backend: [github.com/allankdev/backend-preservacao](https://github.com/allankdev/backend-preservacao)  
+- Frontend: [github.com/allankdev/frontend-preservacao](https://github.com/allankdev/frontend-preservacao)
