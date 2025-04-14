@@ -65,6 +65,7 @@ Editar
   ├── auth.ts          # Funções auxiliares de autenticação
 /hooks
   ├── useAuth.ts       # Hook para autenticação via cookie JWT
+
 🧪 Como rodar o frontend localmente
 1. Clone o repositório
 bash
@@ -102,8 +103,10 @@ Após logar, você será redirecionado automaticamente para /dashboard
 
 O token JWT é salvo via cookie e lido automaticamente nas chamadas do frontend.
 
-🧱 Observações
-❌ Sem uso de Docker: este projeto não utiliza containerização.
+🧱 Observações sobre o ambiente
+❌ Docker:
+
+Este projeto não utiliza Docker por limitações de compatibilidade do sistema operacional (macOS 11.7). Todos os serviços devem ser executados localmente de forma tradicional.
 
 📂 Upload real de arquivos com preview em tempo real via iframe
 
