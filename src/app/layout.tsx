@@ -1,4 +1,3 @@
-import type React from "react"
 import type { Metadata } from "next"
 import { Geist, Geist_Mono } from "next/font/google"
 import "./globals.css"
@@ -24,14 +23,18 @@ export const metadata: Metadata = {
 
 export default function RootLayout({
   children,
-}: Readonly<{
+}: {
   children: React.ReactNode
-}>) {
+}) {
   return (
     <html lang="pt-BR">
-      <body className={`${geistSans.variable} ${geistMono.variable} antialiased min-h-screen flex flex-col`}>
+      <body
+        className={`${geistSans.variable} ${geistMono.variable} antialiased min-h-screen flex flex-col bg-background text-foreground`}
+      >
         <Navbar />
-        <main className="flex-1 max-w-5xl mx-auto px-4 pt-6 pb-20">{children}</main>
+        <main className="flex-1 max-w-5xl w-full mx-auto px-4 pt-6 pb-20">
+          {children}
+        </main>
       </body>
     </html>
   )

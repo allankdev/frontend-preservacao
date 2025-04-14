@@ -4,14 +4,23 @@ import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { useAuth } from "@/hooks/useAuth"
+import { useState } from "react"
 
 export function Navbar() {
   const pathname = usePathname()
-  const { user, logout } = useAuth()
+  const { user, logout, isLoading } = useAuth()
+  const [loggingOut, setLoggingOut] = useState(false)
 
   const isAuthPage = pathname === "/login" || pathname === "/register"
 
-  if (isAuthPage) return null
+  if (isAuthPage || isLoading) return null
+
+  const handleLogout = async () => {
+    setLoggingOut(true)
+    logout()
+    // não precisa esperar muito, o redirect acontece rápido
+    setTimeout(() => setLoggingOut(false), 1000)
+  }
 
   return (
     <header className="w-full border-b bg-white dark:bg-zinc-900">
@@ -26,8 +35,8 @@ export function Navbar() {
               <Link href="/upload">
                 <Button variant="outline">Novo Documento</Button>
               </Link>
-              <Button onClick={logout} variant="destructive">
-                Sair
+              <Button onClick={handleLogout} variant="destructive" disabled={loggingOut}>
+                {loggingOut ? "Saindo..." : "Sair"}
               </Button>
             </>
           ) : (
